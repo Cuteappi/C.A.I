@@ -2,7 +2,7 @@ import { BaseTrigger } from "./BaseTrigger";
 import { ActionValueType, TriggerState } from "../Enums";
 
 
-export class DownTrigger extends BaseTrigger {
+export class ChordedTrigger extends BaseTrigger {
     constructor(actionValueType: ActionValueType) {
         super(actionValueType);
     }

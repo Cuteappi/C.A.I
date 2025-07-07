@@ -1,16 +1,20 @@
 import { BaseTrigger } from "./BaseTrigger";
 import { ActionValueType, TriggerState } from "../Enums";
 
-
-export class DownTrigger extends BaseTrigger {
+export class PressedTrigger extends BaseTrigger {
     constructor(actionValueType: ActionValueType) {
         super(actionValueType);
     }
 
     public UpdateState(currentInput: Vector3, lastInput: Vector3, delta: number): TriggerState {
-        if (this.isActuated(currentInput)) {
+        const isCurrentlyPressed = this.isActuated(currentInput);
+        const wasPreviouslyPressed = this.isActuated(lastInput);
+
+        if (isCurrentlyPressed && !wasPreviouslyPressed) {
+            print("Triggered");
             return TriggerState.Triggered;
         }
+
         return TriggerState.None;
     }
 

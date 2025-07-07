@@ -29,11 +29,12 @@ export function TestInputMapping() {
 
     GamepadService.DisableGamepadCursor();
 
-    const key = Enum.KeyCode.Thumbstick1;
+    const key = Enum.UserInputType.MouseButton1;
     InputManager.AddActiveKey(key);
     print(InputManager.activeKeys);
-    const inputMapping = new InputMapping(key, ActionValueType.Axis2D);
-    inputMapping.AddModifiers(<ModifierArray<"Deadzone">> { modifier: "Deadzone", settings: { lowerThreshold: 0.05, upperThreshold: 1 } });
+    const inputMapping = new InputMapping(key, ActionValueType.Bool);
+    inputMapping.ChangeTrigger("ReleasedTrigger");
+    // inputMapping.AddModifiers(<ModifierArray<"Deadzone">> { modifier: "Deadzone", settings: { lowerThreshold: 0.05, upperThreshold: 1 } });
     RunService.BindToRenderStep("InputManager", Enum.RenderPriority.Input.Value + 2, (delta: number) => {
         process(delta, inputMapping);
         // print("Value: ", inputMapping.Value, ", State: ", inputMapping.State);
