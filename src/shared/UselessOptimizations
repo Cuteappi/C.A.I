@@ -1,0 +1,2 @@
+// I added a useless optimization shrinking the time of getting a key code from a table
+// to a lut which shrinked the the time from 14 micro seconds to 7 micro seconds 
