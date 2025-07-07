@@ -1,6 +1,6 @@
 import Signal from "@rbxts/lemon-signal";
 import { UserInputService } from "@rbxts/services";
-import { DeviceType, DeviceTypeRecord } from "./types";
+import { DeviceType, DeviceTypeRecord } from "./Models/types";
 
 function determinePreferred(inputType: Enum.UserInputType) {
     let newType: DeviceType | undefined;

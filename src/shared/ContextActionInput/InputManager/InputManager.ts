@@ -2,8 +2,8 @@ import Signal from "@rbxts/lemon-signal";
 import Object from "@rbxts/object-utils";
 import { ContextActionService, RunService } from "@rbxts/services";
 import { RawInputData } from "./RawInputData";
-import { GetCorrespondingKey, GetKeyMode, IsJoyStick } from "./Utility";
-import { TAllKeysCategorizedValues, AllKeysCategorized } from "./InputTypes";
+import { GetCorrespondingKey, GetKeyMode, IsJoyStick } from "../Utility/Utility";
+import { TAllKeysCategorizedValues, AllKeysCategorized } from "../Models/InputTypes";
 
 const DEFAULT_PRIORITY = 1;
 const BIND_ALL_KEYS_ACTION_NAME = "BIND_ALL_KEYS";

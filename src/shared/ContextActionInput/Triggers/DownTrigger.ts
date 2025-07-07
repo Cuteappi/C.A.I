@@ -1,5 +1,5 @@
 import { BaseTrigger } from "./BaseTrigger";
-import { ActionValueType, TriggerState } from "../Enums";
+import { ActionValueType, TriggerState } from "../Models/Enums";
 
 
 export class DownTrigger extends BaseTrigger {
@@ -9,20 +9,13 @@ export class DownTrigger extends BaseTrigger {
 
     public UpdateState(currentInput: Vector3, lastInput: Vector3, delta: number): TriggerState {
         if (this.isActuated(currentInput)) {
+            print;
             return TriggerState.Triggered;
         }
         return TriggerState.None;
     }
 
     private isActuated(input: Vector3): boolean {
-        switch (this.ActionValueType) {
-            case ActionValueType.Bool:
-            case ActionValueType.Axis1D:
-                return math.abs(input.X) > 0;
-            case ActionValueType.Axis2D:
-                return math.abs(input.X) > 0 || math.abs(input.Y) > 0;
-            default:
-                return false;
-        }
+        return math.abs(input.X) > 0 || math.abs(input.Y) > 0 || math.abs(input.Z) > 0;
     }
 }

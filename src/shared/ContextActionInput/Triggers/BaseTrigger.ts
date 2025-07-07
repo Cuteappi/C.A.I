@@ -1,4 +1,4 @@
-import { ActionValueType, TriggerState } from "../Enums";
+import { ActionValueType, TriggerState } from "../Models/Enums";
 
 /**
  * The type of a trigger, determining how it contributes to an action's activation.

@@ -29,18 +29,6 @@ export type EInputActions = EGameplayInputActions | EMenuInputActions | EDebugIn
 
 export type InputKeyCode = Enum.KeyCode | Enum.UserInputType;
 
-export interface IInputMap {
-    readonly Gamepad?: InputKeyCode;
-    readonly KeyboardAndMouse?: InputKeyCode;
-}
-
-export enum EActionSpace {
-    boolean,
-    OneD,
-    TwoD,
-    ThreeD,
-}
-
 export enum ActionState {
     Completed,
     OnGoing,
@@ -49,9 +37,9 @@ export enum ActionState {
 
 
 export enum TriggerState {
-    None,
-    Ongoing,
-    Triggered,
+    None = 1,
+    OnGoing = 2,
+    Triggered = 3,
 }
 
 export enum ActionValueType {

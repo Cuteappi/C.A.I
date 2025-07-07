@@ -1,5 +1,5 @@
 import { BaseTrigger } from "./BaseTrigger";
-import { ActionValueType, TriggerState } from "../Enums";
+import { ActionValueType, TriggerState } from "../Models/Enums";
 
 export class PulseTrigger extends BaseTrigger {
     private _TriggerOnStart: boolean;
@@ -51,7 +51,7 @@ export class PulseTrigger extends BaseTrigger {
             this._delayUntilNextPulse -= delta;
 
             if (this._delayUntilNextPulse > 0) {
-                return TriggerState.Ongoing;
+                return TriggerState.OnGoing;
             }
 
             // Time to pulse

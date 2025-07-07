@@ -30,6 +30,13 @@ export type TriggerConfigs = {
     ComboTrigger: {};
 };
 
+export type TriggerSchema<T extends TriggerType = "DownTrigger"> = {
+    Type: T;
+} & (keyof TriggerConfigs[T] extends never
+    ? { config?: TriggerConfigs[T]; }
+    : { config: TriggerConfigs[T]; });
+
+
 export const DEFAULT_TRIGGER_CONFIGS: TriggerConfigs = {
     DownTrigger: {},
     PressedTrigger: {},

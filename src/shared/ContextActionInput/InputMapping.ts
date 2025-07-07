@@ -1,12 +1,13 @@
-import { CheckKeyType } from "./Utility";
+import { CheckKeyType } from "./Utility/Utility";
 import { compose, ModifierFactories, ModifierFunction, Mods } from "./Modifiers";
-import { TriggerState, ActionValueType, PositionType, Axis } from "./Enums";
-import { AllKeysCategorized, TAllKeysCategorizedValues } from "./InputTypes";
-import { InputManager } from "./InputManager";
-import { RawInputData } from "./RawInputData";
+import { TriggerState, ActionValueType, PositionType, Axis, EInputActions } from "./Models/Enums";
+import { AllKeysCategorized, TAllKeysCategorizedValues } from "./Models/InputTypes";
+import { InputManager } from "./InputManager/InputManager";
+import { RawInputData } from "./InputManager/RawInputData";
 import {
 	BaseTrigger,
 	TriggerType,
+	TriggerSchema,
 	HoldTrigger,
 	PressedTrigger,
 	PulseTrigger,
@@ -16,39 +17,42 @@ import {
 	DEFAULT_TRIGGER_CONFIGS,
 } from "./Triggers";
 
-export type ModifierArray<T extends keyof ModifierFactories> = {
-	modifier: T;
-	settings?: Parameters<ModifierFactories[T]>[0];
-};
 
-export class InputMapping {
-	public IsRemappable: boolean = false;
-	public State: TriggerState = TriggerState.None;
-	public Trigger: BaseTrigger;
-	public Modifiers: ModifierFunction[];
-	public Value: Vector3 = Vector3.zero;
-	private _LastValue: Vector3 = Vector3.zero;
-	public PositionType: PositionType;
-	public ActionValueType: ActionValueType;
+export class InputMapping<T extends TriggerType = "DownTrigger"> {
 	public Key: TAllKeysCategorizedValues;
+	public ActionValueType: ActionValueType;
 	public Axis: Axis;
+	public PositionType: PositionType;
+	public Modifiers: ModifierFunction[];
+	public Trigger: BaseTrigger;
+	public Action: EInputActions;
+
+
+	public State: TriggerState = TriggerState.None;
+	public IsRemappable: boolean = false;
+
+	private _value: Vector3 = Vector3.zero;
+	private _lastValue: Vector3 = Vector3.zero;
 
 	constructor(
+		action: EInputActions,
 		key: TAllKeysCategorizedValues,
 		actionValueType: ActionValueType,
+		trigger: TriggerSchema<T>,
 		axis: Axis = Axis.X,
 		positionType: PositionType = PositionType.Position,
 		modifiers: ModifierFunction[] = [],
-		trigger: TriggerType = "DownTrigger",
 	) {
+		this.Action = action;
 		this.Key = key;
 		this.ActionValueType = actionValueType;
 
 		CheckKeyType(key, this.ActionValueType);
+		InputManager.AddActiveKey(key);
 
 		this.PositionType = positionType;
 		this.Modifiers = modifiers;
-		this.Trigger = this.GetTrigger(trigger, DEFAULT_TRIGGER_CONFIGS[trigger]);
+		this.Trigger = this.GetTrigger(trigger.Type, trigger.config ?? DEFAULT_TRIGGER_CONFIGS[trigger.Type]);
 		this.Axis = axis;
 	}
 
@@ -95,7 +99,7 @@ export class InputMapping {
 	private ProcessInput(): Vector3 {
 		const KeyData = InputManager.activeKeys.get(this.Key);
 		if (!KeyData) {
-			warn("KeyData not found");
+			warn("KeyData not found for key: " + this.Key);
 			return Vector3.zero;
 		}
 
@@ -112,22 +116,17 @@ export class InputMapping {
 	}
 
 	public UpdateState(delta: number): Vector3 {
-		this.Value = this.ProcessInput();
+		this._value = this.ProcessInput();
 
-		this.Value = compose(...this.Modifiers)(this.Value);
+		this._value = compose(...this.Modifiers)(this._value);
+		// print("mappingValue: ", this._value);
 
-		this.State = this.Trigger.UpdateState(this.Value, this._LastValue, delta);
+		this.State = this.Trigger.UpdateState(this._value, this._lastValue, delta);
 
 		//Update Last Value
-		this._LastValue = this.Value;
+		this._lastValue = this._value;
 
-		return this.Value;
-	}
-
-	public AddModifiers(...modifiers: ModifierArray<keyof ModifierFactories>[]): void {
-		for (const modifier of modifiers) {
-			this.Modifiers.push(Mods.Add(modifier.modifier, modifier.settings));
-		}
+		return this._value;
 	}
 
 	private GetTrigger<T extends TriggerType>(trigger: T, config: TriggerConfigs[T]): BaseTrigger {

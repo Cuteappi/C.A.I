@@ -151,6 +151,9 @@ export type MouseButtons = typeof AllKeysCategorized.Buttons.MouseButtons;
 export type KeyboardButtons = typeof AllKeysCategorized.Buttons.KeyboardButtons;
 export type JoySticks = typeof AllKeysCategorized.Axis1D.JoySticks;
 export type MouseActions = typeof AllKeysCategorized.Axis1D.MouseActions;
+
+export type GamepadKeys = JoyButtons & JoySticks;
+export type KeyboardMouseKeys = KeyboardButtons & MouseActions & MouseButtons;
 // no 2D because they're included in 1D
 
 

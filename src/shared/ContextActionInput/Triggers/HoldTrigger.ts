@@ -1,5 +1,5 @@
 import { BaseTrigger } from "./BaseTrigger";
-import { ActionValueType, TriggerState } from "../Enums";
+import { ActionValueType, TriggerState } from "../Models/Enums";
 
 export class HoldTrigger extends BaseTrigger {
     private _HoldTime: number;
@@ -32,7 +32,7 @@ export class HoldTrigger extends BaseTrigger {
                     return TriggerState.Triggered;
                 }
             } else {
-                return TriggerState.Ongoing;
+                return TriggerState.OnGoing;
             }
         } else {
             this._accumulatedTime = 0;

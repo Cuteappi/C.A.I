@@ -1,5 +1,5 @@
 import { BaseTrigger } from "./BaseTrigger";
-import { ActionValueType, TriggerState } from "../Enums";
+import { ActionValueType, TriggerState } from "../Models/Enums";
 
 
 export class ChordedTrigger extends BaseTrigger {

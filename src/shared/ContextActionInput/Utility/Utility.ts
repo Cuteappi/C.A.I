@@ -1,5 +1,5 @@
 import Object from "@rbxts/object-utils";
-import { ActionValueType } from "./Enums";
+import { ActionValueType } from "../Models/Enums";
 import {
 	AllKeysCategorized,
 	JoyButtons,
@@ -8,7 +8,7 @@ import {
 	MouseActions,
 	MouseButtons,
 	TAllKeysCategorizedValues
-} from "./InputTypes";
+} from "../Models/InputTypes";
 
 export enum GetKeyMode {
 	Keycode,

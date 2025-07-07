@@ -5,7 +5,7 @@ import {
     EMenuInputActions,
     InputContextType,
     InputKeyCode,
-} from "../Enums";
+} from "../Models/Enums";
 
 export namespace ActionsController {
     type ActionMap = Record<InputContextType, Map<EInputActions, InputKeyCode[]>>;
@@ -43,8 +43,8 @@ export namespace ActionsController {
         return ActionsMap;
     }
 
-    export function IsPressed() {}
-    export function IsReleased() {}
-    export function Press() {}
-    export function Release() {}
+    export function IsPressed() { }
+    export function IsReleased() { }
+    export function Press() { }
+    export function Release() { }
 }

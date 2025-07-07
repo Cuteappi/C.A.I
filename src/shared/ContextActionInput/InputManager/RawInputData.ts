@@ -1,4 +1,4 @@
-import { TAllKeysCategorizedValues } from "./InputTypes";
+import { TAllKeysCategorizedValues } from "../Models/InputTypes";
 
 type KeyBuffer = {
     Current: boolean;

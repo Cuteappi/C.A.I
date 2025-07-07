@@ -1,7 +1,6 @@
-import { ContextActionService, RunService } from "@rbxts/services";
-import { InitTest, TestInputMapping } from "./Test/InputManagerTest";
-
+import { InitTest, TestInputMapping, TestAction } from "./Test/InputManagerTest";
 
 // InitTest();
-TestInputMapping();
+// TestInputMapping();
+TestAction();
 

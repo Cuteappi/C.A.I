@@ -13,6 +13,11 @@ export type Modifiers = {
  */
 export type ModifierFunction = (v: Vector3) => Vector3;
 
+export type ModifierArray<T extends keyof ModifierFactories> = {
+    modifier: T;
+    settings?: Parameters<ModifierFactories[T]>[0];
+};
+
 const modifierFactories = {
     Curve: (settings: CurveSettings = DEFAULT_CURVE_SETTINGS): ModifierFunction => (v) => Curve(v, settings),
     Deadzone: (settings: DeadzoneSettings = DEFAULT_DEADZONE_SETTINGS): ModifierFunction => (v) =>
@@ -235,3 +240,11 @@ export const compose = (...mods: Array<ModifierFunction>) => (initial: Vector3) 
     mods.reduce((acc, fn) => fn(acc), initial);
 
 
+
+export function AddModifiers(...modifiers: ModifierArray<keyof ModifierFactories>[]): ModifierFunction[] {
+    const modifiersArray = [];
+    for (const modifier of modifiers) {
+        modifiersArray.push(Mods.Add(modifier.modifier, modifier.settings));
+    }
+    return modifiersArray;
+}
