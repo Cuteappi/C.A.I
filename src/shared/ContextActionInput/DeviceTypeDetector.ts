@@ -28,13 +28,13 @@ export namespace DeviceDetector {
     export const onInputDeviceTypeChanged = new Signal<DeviceType>();
     let connection: RBXScriptConnection | undefined;
 
-    export function init() {
+    export function Init() {
         if (connection) return;
         connection = UserInputService.LastInputTypeChanged.Connect(determinePreferred);
         determinePreferred(UserInputService.GetLastInputType());
     }
 
-    export function destroy() {
+    export function Destroy() {
         if (connection) {
             connection.Disconnect();
             connection = undefined;
@@ -42,7 +42,7 @@ export namespace DeviceDetector {
         onInputDeviceTypeChanged.Destroy();
     }
 
-    export function getPreviousInputType() {
+    export function GetPreviousInputType() {
         return previousInputType;
     }
 }

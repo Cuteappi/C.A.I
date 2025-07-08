@@ -55,6 +55,8 @@ export namespace InputManager {
     function OnInput(actionName: string, state: Enum.UserInputState, input: InputObject) {
         debug.profilebegin("InputManager Input Processing");
 
+        // print(input.KeyCode.Name);
+
 
         const key = GetCorrespondingKey(GetKeyMode.InputObject, input);
         if (!key) return;

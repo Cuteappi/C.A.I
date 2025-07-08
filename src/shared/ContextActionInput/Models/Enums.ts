@@ -43,9 +43,9 @@ export enum TriggerState {
 }
 
 export enum ActionValueType {
-    Bool = 1,
-    Axis1D = 2,
-    Axis2D = 3,
+    Bool = "Bool",
+    Axis1D = "Axis1D",
+    Axis2D = "Axis2D",
 }
 
 export enum PositionType {
@@ -57,12 +57,4 @@ export enum Axis {
     X,
     Y,
     Z,
-}
-
-export enum InputKeyCodesType {
-    JoySticks,
-    JoyButtons,
-    MouseButtons,
-    MouseRest,
-    Keys,
 }

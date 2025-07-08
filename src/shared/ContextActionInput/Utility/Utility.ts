@@ -9,6 +9,7 @@ import {
 	MouseButtons,
 	TAllKeysCategorizedValues
 } from "../Models/InputTypes";
+import { DeviceType, DeviceTypeRecord } from "../Models/types";
 
 export enum GetKeyMode {
 	Keycode,
@@ -123,4 +124,16 @@ export function CheckKeyType(key: TAllKeysCategorizedValues, value_type: ActionV
 
 export function IsJoyStick(key: TAllKeysCategorizedValues): boolean {
 	return AllKeysCategorized.Axis2D.JoySticks[key.Name as keyof JoySticks] ? true : false;
+}
+
+export function GetDeviceTypeFromKey(key: TAllKeysCategorizedValues): DeviceType | undefined {
+	if (
+		AllKeysCategorized.Axis1D.JoySticks[key.Name as keyof JoySticks] ||
+		AllKeysCategorized.Buttons.JoyButtons[key.Name as keyof JoyButtons]
+	) return DeviceTypeRecord.Gamepad;
+
+	else if (AllKeysCategorized.Axis1D.MouseActions[key.Name as keyof MouseActions] ||
+		AllKeysCategorized.Buttons.MouseButtons[key.Name as keyof MouseButtons] ||
+		AllKeysCategorized.Buttons.KeyboardButtons[key.Name as keyof KeyboardButtons]
+	) return DeviceTypeRecord.MouseKeyboard;
 }
