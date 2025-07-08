@@ -28,7 +28,7 @@ export const DefaultActionKeyConfig: ActionKeyConfig = {
             "D": () => new InputMapping(Enum.KeyCode.D),
         },
         GamepadMapping: {
-            "Thumbstick1": () => new InputMapping(Enum.KeyCode.Thumbstick1, ActionValueType.Axis2D)
+            "Thumbstick1": () => new InputMapping(Enum.KeyCode.Thumbstick1, { actionValueType: ActionValueType.Axis2D })
                 .SetModifiers(
                     { modifier: "Deadzone", settings: { lowerThreshold: 0.1, upperThreshold: 1 } },
                     { modifier: "InputSwizzle", settings: { order: "XZY" } },

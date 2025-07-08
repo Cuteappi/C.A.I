@@ -10,7 +10,7 @@ export class Action {
 	public Name: EInputActions;
 	public ActionValueType: ActionValueType = ActionValueType.Bool;
 	public ShouldConsolidateValue: boolean;
-	public IsRebindable: boolean = true;
+	public IsReMappable: boolean = true;
 	public GamepadMappings: Array<InputMapping> = [];
 	public KeyboardMouseMappings: Array<InputMapping> = [];
 
@@ -34,7 +34,7 @@ export class Action {
 
 
 	public AddMapping(mapping: InputMapping) {
-		mapping.SetAction(this);
+		mapping.SetActionData(this);
 		const keyType = GetDeviceTypeFromKey(mapping.Key);
 
 		switch (keyType) {
@@ -51,12 +51,12 @@ export class Action {
 	}
 
 	public AddMappingKeyboardMouse(mapping: InputMapping) {
-		mapping.SetAction(this);
+		mapping.SetActionData(this);
 		this.KeyboardMouseMappings.push(mapping);
 	}
 
 	public AddMappingGamepad(mapping: InputMapping) {
-		mapping.SetAction(this);
+		mapping.SetActionData(this);
 		this.GamepadMappings.push(mapping);
 	}
 
@@ -71,8 +71,7 @@ export class Action {
 				this.KeyboardMouseMappings.forEach((mapping) => {
 
 					if (this.ShouldConsolidateValue) {
-						let y = mapping.UpdateState(delta);
-						ConsolidatedValue = ConsolidatedValue.add(y);
+						ConsolidatedValue = ConsolidatedValue.add(mapping.UpdateState(delta));
 					}
 					else ConsolidatedValue = Vector3Tools.Max([mapping.UpdateState(delta), ConsolidatedValue]);
 					const state = mapping.GetState();
@@ -114,31 +113,35 @@ export class Action {
 
 	// public Release() { }
 
-	public RebindKey(from: TAllKeysCategorizedValues, toKey: TAllKeysCategorizedValues) {
+	public ReMapActionKey(fromKey: TAllKeysCategorizedValues, toKey: TAllKeysCategorizedValues) {
+		if (fromKey === toKey) return;
 
-		const keyType = GetDeviceTypeFromKey(from);
+		if (!this.IsReMappable) {
+			warn(`Action ${this.Name} is not re-mappable`);
+			return;
+		}
 
-		switch (keyType) {
+		switch (this._currentDeviceTypeContext) {
 			case "MouseKeyboard":
-				const mapping = this.KeyboardMouseMappings.find((mapping) => mapping.Key === from);
+				const mapping = this.KeyboardMouseMappings.find((mapping) => mapping.Key === fromKey);
 				if (mapping) {
-					mapping.RemapKey(toKey);
+					mapping.ReMapKey(toKey);
 				}
 				else {
-					error(`Mapping for key ${from} not found`);
+					warn(`Mapping for key ${fromKey} not found`);
 				}
 				break;
 			case "Gamepad":
-				const gamepadMapping = this.GamepadMappings.find((mapping) => mapping.Key === from);
+				const gamepadMapping = this.GamepadMappings.find((mapping) => mapping.Key === fromKey);
 				if (gamepadMapping) {
-					gamepadMapping.RemapKey(toKey);
+					gamepadMapping.ReMapKey(toKey);
 				}
 				else {
-					error(`Mapping for key ${from} not found`);
+					warn(`Mapping for key ${fromKey} not found`);
 				}
 				break;
 			default:
-				error(`Key type ${keyType} not found`);
+				warn(`Key type ${this._currentDeviceTypeContext} not found`);
 		}
 	}
 

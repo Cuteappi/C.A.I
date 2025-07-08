@@ -11,7 +11,6 @@ export class PressedTrigger extends BaseTrigger {
         const wasPreviouslyPressed = this.isActuated(lastInput);
 
         if (isCurrentlyPressed && !wasPreviouslyPressed) {
-            print("Triggered");
             return TriggerState.Triggered;
         }
 

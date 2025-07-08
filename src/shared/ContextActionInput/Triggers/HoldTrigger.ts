@@ -28,7 +28,6 @@ export class HoldTrigger extends BaseTrigger {
                     return TriggerState.None;
                 } else {
                     this._didShoot = true;
-                    print("Triggered");
                     return TriggerState.Triggered;
                 }
             } else {

@@ -29,6 +29,7 @@ interface InputMappingConfig {
 
 export class InputMapping {
 	public Action!: Action;
+	public Name!: string;
 
 	// changeable values
 	public Key: TAllKeysCategorizedValues;
@@ -47,12 +48,13 @@ export class InputMapping {
 	private _value: Vector3 = Vector3.zero;
 	private _lastValue: Vector3 = Vector3.zero;
 
-	constructor(key: TAllKeysCategorizedValues, actionValueType?: ActionValueType) {
+	constructor(key: TAllKeysCategorizedValues, config: { actionValueType?: ActionValueType, name?: string; } = {}) {
 		this.Key = key;
-		this.ActionValueType = actionValueType ?? ActionValueType.Bool;
+		this.ActionValueType = config.actionValueType ?? ActionValueType.Bool;
 		CheckKeyType(this.Key, this.ActionValueType);
 		InputManager.AddActiveKey(key);
 
+		this.Name = config.name ?? "";
 		this.PositionType = PositionType.Position;
 		this.Modifiers = [];
 		this.SetTrigger("DownTrigger");
@@ -141,8 +143,9 @@ export class InputMapping {
 		return this;
 	}
 
-	public SetAction(action: Action): InputMapping {
+	public SetActionData(action: Action): InputMapping {
 		this.Action = action;
+		this.IsRemappable = action.IsReMappable;
 		return this;
 	}
 
@@ -158,8 +161,10 @@ export class InputMapping {
 	}
 
 	// functions regarding input Remapping
-	public RemapKey(key: TAllKeysCategorizedValues): void {
-		this.Key = key;
+	public ReMapKey(key: TAllKeysCategorizedValues): void {
+		if (InputManager.ReMapKey(this.Key, key)) {
+			this.Key = key;
+		}
 	}
 
 

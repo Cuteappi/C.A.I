@@ -1,10 +1,11 @@
 import { ActionValueType, Axis, EInputActions, PositionType } from "./Models/Enums";
 import { Action } from "./Action";
 import { InputMapping } from "./InputMapping";
+import { TAllKeysCategorizedValues } from "./Models/InputTypes";
 import { ActionKeyConfig, DefaultActionKeyConfig } from "./DefaultActionKeyConfigs";
 import Object from "@rbxts/object-utils";
 
-export class ActionCreationApi {
+export class InputContext {
 
 	public ActionMap: Map<EInputActions, Action> = new Map<EInputActions, Action>();
 
@@ -42,5 +43,15 @@ export class ActionCreationApi {
 				}
 			}
 		}
+	}
+
+	public ReMapActionKey(actionName: EInputActions, fromKey: TAllKeysCategorizedValues, toKey: TAllKeysCategorizedValues) {
+		const action = this.ActionMap.get(actionName);
+		if (!action) {
+			warn(`Action ${actionName} does not exist`);
+			return;
+		}
+
+		action.ReMapActionKey(fromKey, toKey);
 	}
 }

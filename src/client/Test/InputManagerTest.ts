@@ -2,10 +2,10 @@ import { AddModifiers, compose, Mods } from "../../shared/ContextActionInput/Mod
 import { InputMapping } from "shared/ContextActionInput/InputMapping";
 import { InputManager } from "shared/ContextActionInput/InputManager/InputManager";
 import { GamepadService, RunService } from "@rbxts/services";
-import { ActionValueType, PositionType, Axis, EGameplayInputActions } from "shared/ContextActionInput/Models/Enums";
 import { DeviceTypeRecord, DeviceType } from "shared/ContextActionInput/Models/types";
 import { DeviceDetector } from "shared/ContextActionInput/DeviceTypeDetector";
-import { ActionCreationApi } from "shared/ContextActionInput/CreationApi";
+import { InputContext } from "shared/ContextActionInput/InputContext";
+import { EGameplayInputActions } from "shared/ContextActionInput/Models/Enums";
 
 function process(delta: number, inputMapping: InputMapping) {
     debug.profilebegin("Test InputMapping for values");
@@ -13,8 +13,6 @@ function process(delta: number, inputMapping: InputMapping) {
     debug.profileend();
 }
 
-
-export function InitTest() { InputManager.InitTest(); }
 
 export function TestCompose() {
     const negateAndNormalize = compose(
@@ -55,56 +53,15 @@ export function TestInputMapping() {
 export function TestAction() {
     // 1. Define the schemas for our actions, binding multiple keys to each
 
-    const ActionApi = new ActionCreationApi();
+    const GamePlayContext = new InputContext();
 
-    ActionApi.AddFromConfig();
-    // ActionApi.AddAction(EGameplayInputActions.Move, true);
-    // ActionApi.AddMappingForAction(
-    //     EGameplayInputActions.Move,
-    //     new InputMapping(Enum.KeyCode.W)
-    //         .SetModifiers(
-    //             { modifier: "Negate" },
-    //             { modifier: "InputSwizzle", settings: { order: "ZYX" } },
-    //         )
-    // );
-
-    // ActionApi.AddMappingForAction(
-    //     EGameplayInputActions.Move,
-    //     new InputMapping(Enum.KeyCode.A)
-    //         .SetModifiers(
-    //             { modifier: "Negate" },
-    //         )
-    // );
-
-    // ActionApi.AddMappingForAction(
-    //     EGameplayInputActions.Move,
-    //     new InputMapping(Enum.KeyCode.S)
-    //         .SetModifiers(
-    //             { modifier: "InputSwizzle", settings: { order: "ZYX" } },
-    //         )
-    // );
-
-    // ActionApi.AddMappingForAction(
-    //     EGameplayInputActions.Move,
-    //     new InputMapping(Enum.KeyCode.D)
-
-    // );
-
-    // ActionApi.AddMappingForAction(
-    //     EGameplayInputActions.Move,
-    //     new InputMapping(Enum.KeyCode.Thumbstick1)
-    //         .SetActionValueType(ActionValueType.Axis2D)
-    //         .SetModifiers(
-    //             { modifier: "Deadzone", settings: { lowerThreshold: 0.05, upperThreshold: 1 } },
-    //             { modifier: "InputSwizzle", settings: { order: "XZY" } },
-    //         )
-    // );
+    GamePlayContext.AddFromConfig();
 
     // 3. Store all actions in an array for easy processing
 
 
     DeviceDetector.onInputDeviceTypeChanged.Connect((deviceType: DeviceType) => {
-        for (const [actionName, action] of ActionApi.ActionMap) {
+        for (const [actionName, action] of GamePlayContext.ActionMap) {
             action.SetCurrentDeviceTypeContext(deviceType);
         }
     });
@@ -120,7 +77,7 @@ export function TestAction() {
     RunService.BindToRenderStep("ActionTestLoop", Enum.RenderPriority.Input.Value + 2, (delta) => {
         // On each frame, update the state of every action
         debug.profilebegin("ActionTestLoop");
-        for (const [actionName, action] of ActionApi.ActionMap) {
+        for (const [actionName, action] of GamePlayContext.ActionMap) {
             action.UpdateState(delta);
 
             // If the action was just triggered this frame, print its details
@@ -130,4 +87,38 @@ export function TestAction() {
         }
         debug.profileend();
     });
+}
+
+export function TestRemap() {
+    const GamePlayContext = new InputContext();
+    GamePlayContext.AddFromConfig();
+
+    DeviceDetector.onInputDeviceTypeChanged.Connect((deviceType: DeviceType) => {
+        for (const [actionName, action] of GamePlayContext.ActionMap) {
+            action.SetCurrentDeviceTypeContext(deviceType);
+        }
+    });
+
+    InputManager.Init();
+    print("Action test started. Press WASD to see actions trigger.");
+
+    RunService.BindToRenderStep("ActionTestLoop", Enum.RenderPriority.Input.Value + 2, (delta) => {
+        // On each frame, update the state of every action
+        debug.profilebegin("ActionTestLoop");
+        for (const [actionName, action] of GamePlayContext.ActionMap) {
+            action.UpdateState(delta);
+
+            // If the action was just triggered this frame, print its details
+            if (action.isTriggered()) {
+                print(`ACTION TRIGGERED: ${actionName}, Value: ${action.GetValue()}`);
+            }
+        }
+        debug.profileend();
+    });
+
+    task.wait(5);
+    print("Before remap: ", InputManager.GetActiveKeys());
+    GamePlayContext.ReMapActionKey(EGameplayInputActions.Interact, Enum.KeyCode.E, Enum.KeyCode.F);
+    print("After remap: ", InputManager.GetActiveKeys());
+
 }

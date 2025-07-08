@@ -37,7 +37,6 @@ export class PulseTrigger extends BaseTrigger {
                     if (this._MaxPulses > 0) {
                         this._emittedPulses++;
                     }
-                    print("Triggered");
                     return TriggerState.Triggered; // Return immediately
                 }
             }
@@ -59,7 +58,6 @@ export class PulseTrigger extends BaseTrigger {
             if (this._MaxPulses > 0) {
                 this._emittedPulses++;
             }
-            print("Triggered");
             return TriggerState.Triggered;
         } else {
             // Not pressed, reset

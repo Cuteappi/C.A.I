@@ -17,9 +17,9 @@ export abstract class BaseTrigger {
     }
 
 
-    // public GetTriggerType(): TriggerType {
-    //     return TriggerType.Explicit;
-    // }
+    public GetTriggerType(): TriggerType {
+        return TriggerType.Explicit;
+    }
 
     public UpdateState(currentInput: Vector3, LastInput: Vector3, delta: number): TriggerState {
         return TriggerState.None;

@@ -9,7 +9,6 @@ export class DownTrigger extends BaseTrigger {
 
     public UpdateState(currentInput: Vector3, lastInput: Vector3, delta: number): TriggerState {
         if (this.isActuated(currentInput)) {
-            print;
             return TriggerState.Triggered;
         }
         return TriggerState.None;
