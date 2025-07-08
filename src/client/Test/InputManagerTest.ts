@@ -1,11 +1,13 @@
-import { AddModifiers, compose, Mods } from "../../shared/ContextActionInput/Modifiers";
+import { compose, Mods } from "shared/ContextActionInput/Modifiers";
 import { InputMapping } from "shared/ContextActionInput/InputMapping";
 import { InputManager } from "shared/ContextActionInput/InputManager/InputManager";
 import { GamepadService, RunService } from "@rbxts/services";
-import { DeviceTypeRecord, DeviceType } from "shared/ContextActionInput/Models/types";
+import { DeviceType } from "shared/ContextActionInput/Models/types";
 import { DeviceDetector } from "shared/ContextActionInput/DeviceTypeDetector";
 import { InputContext } from "shared/ContextActionInput/InputContext";
-import { EGameplayInputActions } from "shared/ContextActionInput/Models/Enums";
+import { EGameplayInputActions, InputContextType } from "shared/ContextActionInput/Models/Enums";
+import { CAI } from "shared/ContextActionInput/CAI";
+import { DefaultContextActionKeyConfig } from "shared/ContextActionInput/DefaultActionKeyConfigs";
 
 function process(delta: number, inputMapping: InputMapping) {
     debug.profilebegin("Test InputMapping for values");
@@ -53,7 +55,7 @@ export function TestInputMapping() {
 export function TestAction() {
     // 1. Define the schemas for our actions, binding multiple keys to each
 
-    const GamePlayContext = new InputContext();
+    const GamePlayContext = new InputContext(InputContextType.GamePlay);
 
     GamePlayContext.AddFromConfig();
 
@@ -81,7 +83,7 @@ export function TestAction() {
             action.UpdateState(delta);
 
             // If the action was just triggered this frame, print its details
-            if (action.isTriggered()) {
+            if (action.IsTriggered()) {
                 // print(`ACTION TRIGGERED: ${actionName}, Value: ${action.GetValue()}`);
             }
         }
@@ -90,7 +92,7 @@ export function TestAction() {
 }
 
 export function TestRemap() {
-    const GamePlayContext = new InputContext();
+    const GamePlayContext = new InputContext(InputContextType.GamePlay);
     GamePlayContext.AddFromConfig();
 
     DeviceDetector.onInputDeviceTypeChanged.Connect((deviceType: DeviceType) => {
@@ -109,7 +111,7 @@ export function TestRemap() {
             action.UpdateState(delta);
 
             // If the action was just triggered this frame, print its details
-            if (action.isTriggered()) {
+            if (action.IsTriggered()) {
                 print(`ACTION TRIGGERED: ${actionName}, Value: ${action.GetValue()}`);
             }
         }
@@ -120,5 +122,47 @@ export function TestRemap() {
     print("Before remap: ", InputManager.GetActiveKeys());
     GamePlayContext.ReMapActionKey(EGameplayInputActions.Interact, Enum.KeyCode.E, Enum.KeyCode.F);
     print("After remap: ", InputManager.GetActiveKeys());
+
+}
+
+
+
+export function TestCAI() {
+    // Initialize CAI
+    CAI.Init();
+
+    // Verify that the default contexts are created
+    assert(CAI.GamePlayContext, "GamePlayContext should be created");
+    assert(CAI.MenuContext, "MenuContext should be created");
+    assert(CAI.DebugContext, "DebugContext should be created");
+
+    // Assign a context
+    CAI.GamePlayContext.Assign();
+
+    // Verify that the assigned context can be retrieved
+    const assignedContexts = CAI.GetAssignedContexts();
+    assert(assignedContexts.get(InputContextType.GamePlay), "GamePlayContext should be assigned");
+    assert(assignedContexts.size() === 1, "Only one context should be assigned");
+
+    // Add actions from config
+    CAI.AddConfigContexts(DefaultContextActionKeyConfig);
+
+    // Verify that actions have been added to the context
+    const moveAction = CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Move);
+    assert(moveAction, "Move action should be added to GamePlayContext");
+
+    print("CAI Test Passed!");
+
+    RunService.BindToRenderStep("ActionValueTest", Enum.RenderPriority.Input.Value + 3, (delta) => {
+        const moveAction = CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Move)!;
+        const interactAction = CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Interact)!;
+
+        // print(`Move Action Value: ${moveAction.GetValue()}`);
+        print(`Interact Action Value: ${interactAction.GetValue()}`);
+    });
+
+    task.wait(5);
+
+    CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Interact)!.ReMapActionKey(Enum.KeyCode.E, Enum.KeyCode.F);
 
 }

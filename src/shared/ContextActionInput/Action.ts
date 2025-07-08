@@ -5,6 +5,7 @@ import { TriggerType } from "./Triggers";
 import { Vector3Tools } from "./Utility/Vec3Tools";
 import { TAllKeysCategorizedValues } from "./Models/InputTypes";
 import { GetDeviceTypeFromKey, GetKeyMode } from "./Utility/Utility";
+import Object from "@rbxts/object-utils";
 
 export class Action {
 	public Name: EInputActions;
@@ -65,6 +66,7 @@ export class Action {
 	public UpdateState(delta: number) {
 		let ConsolidatedValue = Vector3.zero;
 		let ConsolidatedTriggerState: TriggerState = TriggerState.None;
+
 
 		switch (this._currentDeviceTypeContext) {
 			case "MouseKeyboard":
@@ -145,17 +147,6 @@ export class Action {
 		}
 	}
 
-	public GetKeys() {
-		switch (this._currentDeviceTypeContext) {
-			default:
-			case "MouseKeyboard":
-				return this.KeyboardMouseMappings.map((mapping) => mapping.Key);
-
-			case "Gamepad":
-				return this.GamepadMappings.map((mapping) => mapping.Key);
-		}
-	}
-
 	// Action Hooks
 
 	public GetValue(): Vector3 {
@@ -170,15 +161,53 @@ export class Action {
 		return this._lastState;
 	}
 
-	public isTriggered(): boolean {
+	public IsTriggered(): boolean {
 		return this._currentState === ActionState.Triggered;
 	}
 
-	public isCompleted(): boolean {
+	public IsCompleted(): boolean {
 		return this._currentState === ActionState.Completed;
 	}
 
-	public isOngoing(): boolean {
+	public IsOngoing(): boolean {
 		return this._currentState === ActionState.OnGoing;
+	}
+
+
+	private ValidateActionInitialization() {
+		if (this.KeyboardMouseMappings.size() === 0 && this.GamepadMappings.size() === 0) {
+			error(`No mappings found for action ${this.Name}`);
+		}
+	}
+
+	// Init
+	public Init() {
+
+		let duplicateKeys = new Set<TAllKeysCategorizedValues>();
+		let allKeys = new Set<TAllKeysCategorizedValues>();
+
+		this.KeyboardMouseMappings.forEach((mapping) => {
+			if (allKeys.has(mapping.Key)) {
+				duplicateKeys.add(mapping.Key);
+			}
+			allKeys.add(mapping.Key);
+		});
+
+		this.GamepadMappings.forEach((mapping) => {
+			if (allKeys.has(mapping.Key)) {
+				duplicateKeys.add(mapping.Key);
+			}
+			allKeys.add(mapping.Key);
+		});
+
+		if (duplicateKeys.size() > 0) {
+			warn(`Duplicate keys found for action ${this.Name}: ${Object.values(duplicateKeys).join(", ")}`);
+		}
+
+		this.ValidateActionInitialization();
+
+		this.KeyboardMouseMappings.forEach((mapping) => mapping.ValidateInputMappingInitialization());
+		this.GamepadMappings.forEach((mapping) => mapping.ValidateInputMappingInitialization());
+
 	}
 }

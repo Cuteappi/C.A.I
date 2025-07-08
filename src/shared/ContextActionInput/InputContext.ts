@@ -1,13 +1,24 @@
-import { ActionValueType, Axis, EInputActions, PositionType } from "./Models/Enums";
+import { EInputActions, InputContextType } from "./Models/Enums";
 import { Action } from "./Action";
 import { InputMapping } from "./InputMapping";
 import { TAllKeysCategorizedValues } from "./Models/InputTypes";
-import { ActionKeyConfig, DefaultActionKeyConfig } from "./DefaultActionKeyConfigs";
+import { ActionKeyConfig, DefaultContextActionKeyConfig } from "./DefaultActionKeyConfigs";
 import Object from "@rbxts/object-utils";
+import { DeviceDetector } from "./DeviceTypeDetector";
+import { DeviceType } from "./Models/types";
+import { Connection } from "@rbxts/lemon-signal";
 
 export class InputContext {
 
-	public ActionMap: Map<EInputActions, Action> = new Map<EInputActions, Action>();
+	public Name: InputContextType;
+	public Assigned: boolean = false;
+	public ActionMap: Map<EInputActions, Action>;
+	private _currentDeviceTypeConnection?: Connection;
+
+	constructor(name: InputContextType) {
+		this.Name = name;
+		this.ActionMap = new Map<EInputActions, Action>();
+	}
 
 	public AddAction(name: EInputActions, shouldConsolidateValue: boolean = false): Action {
 		const action = new Action(name, shouldConsolidateValue);
@@ -28,7 +39,7 @@ export class InputContext {
 		action.AddMapping(mapping);
 	}
 
-	public AddFromConfig(config: ActionKeyConfig = DefaultActionKeyConfig) {
+	public AddFromConfig(config: ActionKeyConfig = DefaultContextActionKeyConfig[this.Name]) {
 		for (const [actionName, mapping] of Object.entries(config)) {
 
 			const action = mapping.Action(actionName);
@@ -53,5 +64,38 @@ export class InputContext {
 		}
 
 		action.ReMapActionKey(fromKey, toKey);
+	}
+
+
+	public Assign() {
+		this.Assigned = true;
+	}
+
+	public UnAssign() {
+		this.Assigned = false;
+	}
+
+
+	public UpdateState(delta: number) {
+		for (const [actionName, action] of this.ActionMap) {
+			// print("Action: ", actionName);
+			action.UpdateState(delta);
+		}
+	}
+
+	public Init() {
+		this._currentDeviceTypeConnection = DeviceDetector.onInputDeviceTypeChanged.Connect((deviceType: DeviceType) => {
+			for (const [actionName, action] of this.ActionMap) {
+				action.SetCurrentDeviceTypeContext(deviceType);
+			}
+		});
+
+		for (const [actionName, action] of this.ActionMap) {
+			action.Init();
+		}
+	}
+
+	public Destroy() {
+		this._currentDeviceTypeConnection?.Disconnect();
 	}
 }

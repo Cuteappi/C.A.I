@@ -149,6 +149,11 @@ export class InputMapping {
 		return this;
 	}
 
+	public SetName(name: string): InputMapping {
+		this.Name = name;
+		return this;
+	}
+
 
 	//Getters
 
@@ -166,9 +171,6 @@ export class InputMapping {
 			this.Key = key;
 		}
 	}
-
-
-
 
 	// functions to process input below
 
@@ -251,17 +253,20 @@ export class InputMapping {
 
 
 
-	public ValidateIfInitializedProperly() {
-		if (!this.Trigger) {
+	public ValidateInputMappingInitialization() {
+		if (this.Trigger === undefined) {
 			warn("Trigger not initialized for key: " + this.Key);
 		}
-		if (!this.ActionValueType) {
+		if (this.Action === undefined) {
+			warn("Action not initialized for key: " + this.Key);
+		}
+		if (this.ActionValueType === undefined) {
 			warn("ActionValueType not initialized for key: " + this.Key);
 		}
-		if (!this.Modifiers) {
+		if (this.Modifiers === undefined) {
 			warn("Modifiers not initialized for key: " + this.Key);
 		}
-		if (!this.IsRemappable) {
+		if (this.IsRemappable === undefined) {
 			warn("IsRemappable not initialized for key: " + this.Key);
 		}
 	}

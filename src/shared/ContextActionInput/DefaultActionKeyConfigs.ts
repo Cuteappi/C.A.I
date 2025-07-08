@@ -1,5 +1,5 @@
 import { Action } from "./Action";
-import { EGameplayInputActions, EInputActions } from "./Models/Enums";
+import { EDebugInputActions, EGameplayInputActions, EInputActions, InputContextType } from "./Models/Enums";
 import { InputMapping } from "./InputMapping";
 import { KeyboardMouseKeys, GamepadKeys } from "./Models/InputTypes";
 import { ActionValueType } from "./Models/Enums";
@@ -10,12 +10,13 @@ type ActionMapping = {
     GamepadMapping?: Partial<Record<keyof GamepadKeys, () => InputMapping>>,
 };
 
-
 export type ActionKeyConfig = Partial<Record<EInputActions, ActionMapping>>;
 
+export type ContextActionKeyConfig = Record<InputContextType, ActionKeyConfig>;
 
 
-export const DefaultActionKeyConfig: ActionKeyConfig = {
+
+const GameplayContextActionKeyConfig: ActionKeyConfig = {
     [EGameplayInputActions.Move]: {
         Action: (actionName) => new Action(actionName, true),
         KeyBoardMouseMapping: {
@@ -42,5 +43,26 @@ export const DefaultActionKeyConfig: ActionKeyConfig = {
             "E": () => new InputMapping(Enum.KeyCode.E).SetTrigger("PressedTrigger"),
         },
     },
-}
 
+};
+
+
+const MenuContextActionKeyConfig: ActionKeyConfig = {
+
+};
+
+const DebugContextActionKeyConfig: ActionKeyConfig = {
+    [EDebugInputActions.Toggle]: {
+        Action: (actionName) => new Action(actionName, false),
+        KeyBoardMouseMapping: {
+            "F2": () => new InputMapping(Enum.KeyCode.F2).SetTrigger("PressedTrigger"),
+        },
+    },
+};
+
+
+export const DefaultContextActionKeyConfig: ContextActionKeyConfig = {
+    [InputContextType.GamePlay]: GameplayContextActionKeyConfig,
+    [InputContextType.Menu]: MenuContextActionKeyConfig,
+    [InputContextType.Debug]: DebugContextActionKeyConfig,
+};

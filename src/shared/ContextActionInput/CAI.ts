@@ -1,50 +1,66 @@
-// import { ActionsController } from "./ActionsController";
-// import { IInputMap, InputContextType, EInputActions, InputKeyCode, EDebugInputActions } from "./Enums";
+import { InputContext } from "./InputContext";
+import { InputContextType } from "./Models/Enums";
+import { RunService } from "@rbxts/services";
+import { RenderPriorities } from "./Utility/RenderPriorities";
+import { DeviceDetector } from "./DeviceTypeDetector";
+import { ContextActionKeyConfig } from "./DefaultActionKeyConfigs";
+import Object from "@rbxts/object-utils";
+import { InputManager } from "./InputManager/InputManager";
 
-// export class InputContext {
-// 	public readonly Name: InputContextType;
-// 	private _assign: boolean = false;
+export namespace CAI {
+    const _contexts: Map<InputContextType, InputContext> = new Map<InputContextType, InputContext>();
 
-// 	constructor(name: InputContextType) {
-// 		this.Name = name;
-// 	}
+    export function CreateInputContext(name: InputContextType): InputContext {
+        const context = new InputContext(name);
+        _contexts.set(name, context);
+        return context;
+    }
 
-// 	AddAction(ActionName: EInputActions, inputMap: IInputMap) {
-// 		const keycodes: InputKeyCode[] = [];
-// 		if (inputMap.Gamepad) {
-// 			keycodes.push(inputMap.Gamepad);
-// 		}
-// 		if (inputMap.KeyboardAndMouse) {
-// 			keycodes.push(inputMap.KeyboardAndMouse);
-// 		}
-// 		ActionsController.AddAction(this.Name, ActionName, keycodes);
-// 	}
+    export const DebugContext = CreateInputContext(InputContextType.Debug);
+    export const GamePlayContext = CreateInputContext(InputContextType.GamePlay);
+    export const MenuContext = CreateInputContext(InputContextType.Menu);
 
-// 	RemoveAction(ActionName: InputActions) {
-// 		ActionsController.RemoveAction(this.Name, ActionName);
-// 	}
-// 	Assign() {
-// 		this._assign = true;
-// 		//update cas bind all corresponding actions and unbind
-// 	}
+    export function AddConfigContexts(config: ContextActionKeyConfig) {
+        for (const [contextName, context] of Object.entries(config)) {
+            switch (contextName) {
+                case InputContextType.Debug:
+                    DebugContext.AddFromConfig(context);
+                    break;
+                case InputContextType.GamePlay:
+                    GamePlayContext.AddFromConfig(context);
+                    break;
+                case InputContextType.Menu:
+                    MenuContext.AddFromConfig(context);
+                    break;
+            }
 
-// 	Unassign() {
-// 		this._assign = false;
-// 	}
+        }
+    }
 
-// 	UpdateActionKeys() {}
-// }
+    //TODO add default binds for ui and gameplay
 
-// export namespace InputContextController {
-// 	export function CreateInputContext(name: InputContextType) {
-// 		return new InputContext(name);
-// 	}
+    export function GetAssignedContexts() {
+        const assignedContexts: Map<InputContextType, InputContext> = new Map<InputContextType, InputContext>();
+        for (const [contextName, context] of _contexts) {
+            if (context.Assigned) assignedContexts.set(contextName, context);
+        }
+        return assignedContexts;
+    }
 
-// 	export const DebugContext = CreateInputContext(InputContextType.Debug);
-// 	DebugContext.AddAction(DebugInputActions.Toggle, { KeyboardAndMouse: Enum.KeyCode.F2 });
-// 	// const GameplayContext = CreateInputContext(InputContextType.GamePlay);
-// 	// GameplayContext.AddAction(GameplayInputActions.Jump, {KeyboardAndMouse: Enum.KeyCode.Space});
-// 	// const MenuContext = CreateInputContext(InputContextType.Menu);
+    function BindToRenderStep() {
+        RunService.BindToRenderStep("InputContextController", RenderPriorities.UpdateActionsActivation, (delta: number) => {
+            for (const [contextName, context] of _contexts) {
+                if (context.Assigned) context.UpdateState(delta);
+            }
+        });
+    }
 
-// 	//TODO add default binds for ui and gameplay
-// }
+    export function Init() {
+
+        for (const [contextName, context] of _contexts) {
+            context.Init();
+        }
+        InputManager.Init();
+        BindToRenderStep();
+    }
+}
