@@ -1,8 +1,9 @@
+// print("Loading CAI module...");
+
 import { InputContext } from "./InputContext";
 import { InputContextType } from "./Models/Enums";
 import { RunService } from "@rbxts/services";
 import { RenderPriorities } from "./Utility/RenderPriorities";
-import { DeviceDetector } from "./DeviceTypeDetector";
 import { ContextActionKeyConfig } from "./DefaultActionKeyConfigs";
 import Object from "@rbxts/object-utils";
 import { InputManager } from "./InputManager/InputManager";
@@ -21,17 +22,12 @@ export namespace CAI {
     export const MenuContext = CreateInputContext(InputContextType.Menu);
 
     export function AddConfigContexts(config: ContextActionKeyConfig) {
-        for (const [contextName, context] of Object.entries(config)) {
-            switch (contextName) {
-                case InputContextType.Debug:
-                    DebugContext.AddFromConfig(context);
-                    break;
-                case InputContextType.GamePlay:
-                    GamePlayContext.AddFromConfig(context);
-                    break;
-                case InputContextType.Menu:
-                    MenuContext.AddFromConfig(context);
-                    break;
+        for (const [contextName, contextData] of Object.entries(config)) {
+            const context = _contexts.get(contextName as InputContextType);
+            if (context) {
+                context.AddFromConfig(contextData);
+            } else {
+                warn(`Context "${contextName}" not found or not registered.`);
             }
 
         }
@@ -50,13 +46,15 @@ export namespace CAI {
     function BindToRenderStep() {
         RunService.BindToRenderStep("InputContextController", RenderPriorities.UpdateActionsActivation, (delta: number) => {
             for (const [contextName, context] of _contexts) {
-                if (context.Assigned) context.UpdateState(delta);
+                if (context.Assigned) {
+                    context.UpdateState(delta);
+                }
             }
         });
     }
 
-    export function Init() {
 
+    export function Init() {
         for (const [contextName, context] of _contexts) {
             context.Init();
         }

@@ -4,3 +4,4 @@
 *.tsbuildinfo
 /GUIDE
 sourcemap.json
+/src/shared/RobloxDefault

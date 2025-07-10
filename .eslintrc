@@ -22,6 +22,6 @@
 	"rules": {
 		"semi": "off",
 		"curly": "off",
-		"no-inner-declarations": ["error", "functions", { "blockScopedFunctions": "allow" }]
+		"no-inner-declarations": "off"
 	}
 }

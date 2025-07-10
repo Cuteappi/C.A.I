@@ -22,10 +22,6 @@ export class RawInputData {
         this.Key = key;
     }
 
-    UpdateKey(key: TAllKeysCategorizedValues) {
-        this.Key = key;
-    }
-
 
     UpdateKeybuffer() {
         this.KeyBuffer.Pre_Previous = this.KeyBuffer.Previous;

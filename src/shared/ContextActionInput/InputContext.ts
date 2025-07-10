@@ -40,18 +40,18 @@ export class InputContext {
 	}
 
 	public AddFromConfig(config: ActionKeyConfig = DefaultContextActionKeyConfig[this.Name]) {
-		for (const [actionName, mapping] of Object.entries(config)) {
+		for (const [actionName, mappingConfig] of Object.entries(config)) {
 
-			const action = mapping.Action(actionName);
+			const action = mappingConfig.Action(actionName);
 			this.ActionMap.set(actionName, action);
 
-			for (const [key, value] of Object.entries(mapping.KeyBoardMouseMapping)) {
-				action.AddMappingKeyboardMouse(value());
-			}
-			if (mapping.GamepadMapping) {
-				for (const [key, value] of Object.entries(mapping.GamepadMapping)) {
-					action.AddMappingGamepad(value());
-				}
+			const allMappings = {
+				...mappingConfig.KeyBoardMouseMapping,
+				...(mappingConfig.GamepadMapping ?? {}),
+			};
+
+			for (const [, mappingCreator] of Object.entries(allMappings)) {
+				action.AddMapping(mappingCreator());
 			}
 		}
 	}
@@ -69,16 +69,34 @@ export class InputContext {
 
 	public Assign() {
 		this.Assigned = true;
+		for (const [actionName, action] of this.ActionMap) {
+			action.ActivateInputMappings();
+		}
 	}
 
 	public UnAssign() {
+		for (const [actionName, action] of this.ActionMap) {
+			action.DeactivateInputMappings();
+		}
+
+		//Todo add remove unused mappings
 		this.Assigned = false;
+
+
+
 	}
 
 
+	public GetAction(actionName: EInputActions) {
+		if (!this.ActionMap.has(actionName)) {
+			warn(`Action ${actionName} does not exist`);
+			return;
+		}
+		return this.ActionMap.get(actionName);
+	}
+
 	public UpdateState(delta: number) {
 		for (const [actionName, action] of this.ActionMap) {
-			// print("Action: ", actionName);
 			action.UpdateState(delta);
 		}
 	}

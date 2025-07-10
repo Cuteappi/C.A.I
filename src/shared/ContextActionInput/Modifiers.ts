@@ -1,12 +1,3 @@
-export type Modifiers = {
-    Curve: typeof Curve;
-    Deadzone: typeof Deadzone;
-    InputSwizzle: typeof InputSwizzle;
-    MapRange: typeof MapRange;
-    Negate: typeof Negate;
-    Normalize: typeof Normalize;
-    PositiveNegative: typeof PositiveNegative;
-};
 
 /**
  * Represents a function that takes a Vector3 and returns a Vector3, typically a partially applied modifier.
@@ -35,12 +26,6 @@ export type ModifierFactories = typeof modifierFactories;
 export const Mods = {
     ...modifierFactories,
 
-    /**
-     * Adds a new modifier to the list of modifiers.
-     * @param modifierName The name of the modifier to add (e.g., "Curve", "Deadzone").
-     * @param settings The settings for the new modifier.
-     * @returns A new ModifierFunction.
-     */
     Add: <T extends keyof typeof modifierFactories>(
         modifierName: T,
         settings: Parameters<typeof modifierFactories[T]>[0],
@@ -51,15 +36,6 @@ export const Mods = {
         return modifierFactory(settings);
     },
 
-    /**
-     * Re-orders a list of modifiers.
-     * @param mods The original list of modifiers.
-     * @param newOrder An array of indices representing the desired new order.
-     * @returns A new list of modifiers in the specified order.
-     */
-    Reorder: (mods: ModifierFunction[], newOrder: number[]): ModifierFunction[] => {
-        return newOrder.map((i) => mods[i]);
-    },
 };
 
 export type ModsBuilder = typeof Mods;

@@ -1,10 +1,9 @@
 import { ActionState, ActionValueType, EInputActions, TriggerState } from "./Models/Enums";
-import { InputMapping } from "./InputMapping";
-import { DeviceType, DeviceTypeRecord } from "./Models/types";
-import { TriggerType } from "./Triggers";
+import type { InputMapping } from "./InputMapping";
+import { DeviceType } from "./Models/types";
 import { Vector3Tools } from "./Utility/Vec3Tools";
 import { TAllKeysCategorizedValues } from "./Models/InputTypes";
-import { GetDeviceTypeFromKey, GetKeyMode } from "./Utility/Utility";
+import { GetDeviceTypeFromKey } from "./Utility/Utility";
 import Object from "@rbxts/object-utils";
 
 export class Action {
@@ -12,8 +11,7 @@ export class Action {
 	public ActionValueType: ActionValueType = ActionValueType.Bool;
 	public ShouldConsolidateValue: boolean;
 	public IsReMappable: boolean = true;
-	public GamepadMappings: Array<InputMapping> = [];
-	public KeyboardMouseMappings: Array<InputMapping> = [];
+	public Mappings: Array<InputMapping> = [];
 
 	private Value: Vector3 = Vector3.zero;
 
@@ -36,71 +34,37 @@ export class Action {
 
 	public AddMapping(mapping: InputMapping) {
 		mapping.SetActionData(this);
-		const keyType = GetDeviceTypeFromKey(mapping.Key);
-
-		switch (keyType) {
-			case DeviceTypeRecord.MouseKeyboard:
-				this.KeyboardMouseMappings.push(mapping);
-				break;
-
-			case DeviceTypeRecord.Gamepad:
-				this.GamepadMappings.push(mapping);
-				break;
-			default:
-				error(`Device type ${keyType} not found`);
-		}
+		this.Mappings.push(mapping);
 	}
 
-	public AddMappingKeyboardMouse(mapping: InputMapping) {
-		mapping.SetActionData(this);
-		this.KeyboardMouseMappings.push(mapping);
+	private getActiveDeviceMappings(): InputMapping[] {
+		const deviceType = this._currentDeviceTypeContext;
+		return this.Mappings.filter((mapping) => GetDeviceTypeFromKey(mapping.Key) === deviceType);
 	}
 
-	public AddMappingGamepad(mapping: InputMapping) {
-		mapping.SetActionData(this);
-		this.GamepadMappings.push(mapping);
-	}
-
-
-
-	public UpdateState(delta: number) {
+	private _getConsolidatedState(mappings: InputMapping[], delta: number): LuaTuple<[Vector3, TriggerState]> {
 		let ConsolidatedValue = Vector3.zero;
 		let ConsolidatedTriggerState: TriggerState = TriggerState.None;
 
+		mappings.forEach((mapping) => {
+			if (this.ShouldConsolidateValue) {
+				ConsolidatedValue = ConsolidatedValue.add(mapping.UpdateState(delta));
+			} else ConsolidatedValue = Vector3Tools.Max([mapping.UpdateState(delta), ConsolidatedValue]);
+			const state = mapping.GetState();
+			ConsolidatedTriggerState = ConsolidatedTriggerState > state ? ConsolidatedTriggerState : state;
+		});
 
-		switch (this._currentDeviceTypeContext) {
-			case "MouseKeyboard":
-				this.KeyboardMouseMappings.forEach((mapping) => {
+		return $tuple(ConsolidatedValue, ConsolidatedTriggerState);
+	}
 
-					if (this.ShouldConsolidateValue) {
-						ConsolidatedValue = ConsolidatedValue.add(mapping.UpdateState(delta));
-					}
-					else ConsolidatedValue = Vector3Tools.Max([mapping.UpdateState(delta), ConsolidatedValue]);
-					const state = mapping.GetState();
-					ConsolidatedTriggerState = ConsolidatedTriggerState > state ? ConsolidatedTriggerState : state;
+	public UpdateState(delta: number) {
+		const activeMappings = this.getActiveDeviceMappings();
+		const [ConsolidatedValue, ConsolidatedTriggerState] = this._getConsolidatedState(activeMappings, delta);
 
-				});
-				break;
-
-
-			case "Gamepad":
-				this.GamepadMappings.forEach((mapping) => {
-
-					if (this.ShouldConsolidateValue) ConsolidatedValue = ConsolidatedValue.add(mapping.UpdateState(delta));
-					else ConsolidatedValue = Vector3Tools.Max([mapping.UpdateState(delta), ConsolidatedValue]);
-
-					const state = mapping.GetState();
-					ConsolidatedTriggerState = ConsolidatedTriggerState > state ? ConsolidatedTriggerState : state;
-				});
-				break;
-		}
-
-
-
-		if (ConsolidatedTriggerState as TriggerState === TriggerState.Triggered) {
+		if (ConsolidatedTriggerState === TriggerState.Triggered) {
 			this._currentState = ActionState.Triggered;
 			this.Value = ConsolidatedValue;
-		} else if (ConsolidatedTriggerState as TriggerState === TriggerState.OnGoing) {
+		} else if (ConsolidatedTriggerState === TriggerState.OnGoing) {
 			this._currentState = ActionState.OnGoing;
 			this.Value = Vector3.zero;
 		} else {
@@ -123,28 +87,34 @@ export class Action {
 			return;
 		}
 
-		switch (this._currentDeviceTypeContext) {
-			case "MouseKeyboard":
-				const mapping = this.KeyboardMouseMappings.find((mapping) => mapping.Key === fromKey);
-				if (mapping) {
-					mapping.ReMapKey(toKey);
-				}
-				else {
-					warn(`Mapping for key ${fromKey} not found`);
-				}
-				break;
-			case "Gamepad":
-				const gamepadMapping = this.GamepadMappings.find((mapping) => mapping.Key === fromKey);
-				if (gamepadMapping) {
-					gamepadMapping.ReMapKey(toKey);
-				}
-				else {
-					warn(`Mapping for key ${fromKey} not found`);
-				}
-				break;
-			default:
-				warn(`Key type ${this._currentDeviceTypeContext} not found`);
+
+		const activeMappings = this.getActiveDeviceMappings();
+		const mapping = activeMappings.find((m) => m.Key === fromKey);
+
+		if (mapping) {
+			mapping.ReMapKey(toKey);
+		} else {
+			warn(`Mapping for key ${fromKey} not found on the current device`);
 		}
+
+	}
+
+	public ActivateInputMappings() {
+		const deviceType = this._currentDeviceTypeContext;
+		this.Mappings.forEach((mapping) => {
+			if (GetDeviceTypeFromKey(mapping.Key) === deviceType) {
+				mapping.ActivateKey();
+			}
+		});
+	}
+
+	public DeactivateInputMappings() {
+		const deviceType = this._currentDeviceTypeContext;
+		this.Mappings.forEach((mapping) => {
+			if (GetDeviceTypeFromKey(mapping.Key) === deviceType) {
+				mapping.DeactivateKey();
+			}
+		});
 	}
 
 	// Action Hooks
@@ -175,7 +145,7 @@ export class Action {
 
 
 	private ValidateActionInitialization() {
-		if (this.KeyboardMouseMappings.size() === 0 && this.GamepadMappings.size() === 0) {
+		if (this.Mappings.size() === 0) {
 			error(`No mappings found for action ${this.Name}`);
 		}
 	}
@@ -183,17 +153,10 @@ export class Action {
 	// Init
 	public Init() {
 
-		let duplicateKeys = new Set<TAllKeysCategorizedValues>();
-		let allKeys = new Set<TAllKeysCategorizedValues>();
+		const duplicateKeys = new Set<TAllKeysCategorizedValues>();
+		const allKeys = new Set<TAllKeysCategorizedValues>();
 
-		this.KeyboardMouseMappings.forEach((mapping) => {
-			if (allKeys.has(mapping.Key)) {
-				duplicateKeys.add(mapping.Key);
-			}
-			allKeys.add(mapping.Key);
-		});
-
-		this.GamepadMappings.forEach((mapping) => {
+		this.Mappings.forEach((mapping) => {
 			if (allKeys.has(mapping.Key)) {
 				duplicateKeys.add(mapping.Key);
 			}
@@ -201,13 +164,12 @@ export class Action {
 		});
 
 		if (duplicateKeys.size() > 0) {
-			warn(`Duplicate keys found for action ${this.Name}: ${Object.values(duplicateKeys).join(", ")}`);
+			error(`Duplicate keys found for action ${this.Name}: ${Object.values(duplicateKeys).join(", ")}`);
 		}
 
 		this.ValidateActionInitialization();
 
-		this.KeyboardMouseMappings.forEach((mapping) => mapping.ValidateInputMappingInitialization());
-		this.GamepadMappings.forEach((mapping) => mapping.ValidateInputMappingInitialization());
+		this.Mappings.forEach((mapping) => mapping.ValidateInputMappingInitialization());
 
 	}
 }

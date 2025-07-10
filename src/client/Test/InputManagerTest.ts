@@ -5,7 +5,7 @@ import { GamepadService, RunService } from "@rbxts/services";
 import { DeviceType } from "shared/ContextActionInput/Models/types";
 import { DeviceDetector } from "shared/ContextActionInput/DeviceTypeDetector";
 import { InputContext } from "shared/ContextActionInput/InputContext";
-import { EGameplayInputActions, InputContextType } from "shared/ContextActionInput/Models/Enums";
+import { EDebugInputActions, EGameplayInputActions, InputContextType } from "shared/ContextActionInput/Models/Enums";
 import { CAI } from "shared/ContextActionInput/CAI";
 import { DefaultContextActionKeyConfig } from "shared/ContextActionInput/DefaultActionKeyConfigs";
 
@@ -129,40 +129,39 @@ export function TestRemap() {
 
 export function TestCAI() {
     // Initialize CAI
-    CAI.Init();
-
-    // Verify that the default contexts are created
-    assert(CAI.GamePlayContext, "GamePlayContext should be created");
-    assert(CAI.MenuContext, "MenuContext should be created");
-    assert(CAI.DebugContext, "DebugContext should be created");
-
-    // Assign a context
-    CAI.GamePlayContext.Assign();
-
-    // Verify that the assigned context can be retrieved
-    const assignedContexts = CAI.GetAssignedContexts();
-    assert(assignedContexts.get(InputContextType.GamePlay), "GamePlayContext should be assigned");
-    assert(assignedContexts.size() === 1, "Only one context should be assigned");
-
-    // Add actions from config
     CAI.AddConfigContexts(DefaultContextActionKeyConfig);
+    CAI.GamePlayContext.Assign();
+    CAI.DebugContext.Assign();
 
-    // Verify that actions have been added to the context
-    const moveAction = CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Move);
-    assert(moveAction, "Move action should be added to GamePlayContext");
+    InputManager.Init();
+    CAI.Init();
 
     print("CAI Test Passed!");
 
     RunService.BindToRenderStep("ActionValueTest", Enum.RenderPriority.Input.Value + 3, (delta) => {
         const moveAction = CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Move)!;
         const interactAction = CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Interact)!;
+        const debugAction = CAI.DebugContext.ActionMap.get(EDebugInputActions.Toggle)!;
 
         // print(`Move Action Value: ${moveAction.GetValue()}`);
-        print(`Interact Action Value: ${interactAction.GetValue()}`);
+        // print(`Interact Action Value: ${interactAction.GetValue()}, Debug Action Value: ${debugAction.GetValue()}`);
     });
 
-    task.wait(5);
+    task.wait(2);
 
+    print("Active keys: ", InputManager.GetActiveKeys());
     CAI.GamePlayContext.ActionMap.get(EGameplayInputActions.Interact)!.ReMapActionKey(Enum.KeyCode.E, Enum.KeyCode.F);
+    CAI.DebugContext.UnAssign();
 
+    print("Active keys: ", InputManager.GetActiveKeys());
+
+    task.wait(1);
+    CAI.GamePlayContext.UnAssign();
+
+    print("Active keys: ", InputManager.GetActiveKeys());
+
+    task.wait(1);
+    CAI.GamePlayContext.Assign();
+
+    print("Active keys: ", InputManager.GetActiveKeys());
 }

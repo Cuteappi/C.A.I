@@ -1,5 +1,4 @@
 import { CheckKeyType } from "./Utility/Utility";
-import { Action } from "./Action";
 import { AddModifiers, compose, ModifierArray, ModifierFactories, ModifierFunction, Mods } from "./Modifiers";
 import { TriggerState, ActionValueType, PositionType, Axis, EInputActions } from "./Models/Enums";
 import { AllKeysCategorized, TAllKeysCategorizedValues } from "./Models/InputTypes";
@@ -8,23 +7,13 @@ import { RawInputData } from "./InputManager/RawInputData";
 import {
 	BaseTrigger,
 	TriggerType,
-	HoldTrigger,
-	PressedTrigger,
-	PulseTrigger,
-	ReleasedTrigger,
-	DownTrigger,
 	TriggerConfigs,
 	DEFAULT_TRIGGER_CONFIGS,
 } from "./Triggers";
+import { TriggerFactory } from "./Triggers/TriggerFactory";
 
 
-interface InputMappingConfig {
-	Axis?: Axis;
-	PositionType?: PositionType;
-	Modifiers?: ModifierFunction[];
-	IsRemappable?: boolean;
-
-}
+type Action = import("./Action").Action;
 
 
 export class InputMapping {
@@ -52,7 +41,7 @@ export class InputMapping {
 		this.Key = key;
 		this.ActionValueType = config.actionValueType ?? ActionValueType.Bool;
 		CheckKeyType(this.Key, this.ActionValueType);
-		InputManager.AddActiveKey(key);
+		// InputManager.AddActiveKey(key);
 
 		this.Name = config.name ?? "";
 		this.PositionType = PositionType.Position;
@@ -62,58 +51,13 @@ export class InputMapping {
 	}
 
 
-	// helper functions
-
-	private GetTrigger<T extends TriggerType>(trigger: T, config: TriggerConfigs[T]): BaseTrigger {
-
-
-		switch (trigger) {
-			case "DownTrigger":
-				return new DownTrigger(this.ActionValueType);
-			case "PressedTrigger":
-				return new PressedTrigger(this.ActionValueType);
-
-
-			case "HoldTrigger": {
-				const holdConfig = config as TriggerConfigs["HoldTrigger"];
-				return new HoldTrigger(
-					this.ActionValueType,
-					holdConfig.holdTime ?? DEFAULT_TRIGGER_CONFIGS.HoldTrigger.holdTime,
-					holdConfig.isOneShot ?? DEFAULT_TRIGGER_CONFIGS.HoldTrigger.isOneShot,
-				);
-			}
-
-
-			case "PulseTrigger": {
-				const pulseConfig = config as TriggerConfigs["PulseTrigger"];
-				return new PulseTrigger(
-					this.ActionValueType,
-					pulseConfig.triggerOnStart ?? DEFAULT_TRIGGER_CONFIGS.PulseTrigger.triggerOnStart,
-					pulseConfig.initialDelay ?? DEFAULT_TRIGGER_CONFIGS.PulseTrigger.initialDelay,
-					pulseConfig.pulseInterval ?? DEFAULT_TRIGGER_CONFIGS.PulseTrigger.pulseInterval,
-					pulseConfig.maxPulses ?? DEFAULT_TRIGGER_CONFIGS.PulseTrigger.maxPulses,
-				);
-			}
-
-
-			case "ReleasedTrigger":
-				return new ReleasedTrigger(this.ActionValueType);
-
-			// TODO create Combo and Chorded Triggers
-			case "ChordedTrigger":
-				return new DownTrigger(this.ActionValueType);
-			case "ComboTrigger":
-				return new DownTrigger(this.ActionValueType);
-			default:
-				return new DownTrigger(this.ActionValueType);
-		}
-	}
-
-
 	// Setters
 
-	public SetTrigger<T extends TriggerType>(trigger: T, config: TriggerConfigs[T] = DEFAULT_TRIGGER_CONFIGS[trigger]): InputMapping {
-		this.Trigger = this.GetTrigger(trigger, config);
+	public SetTrigger<T extends TriggerType>(
+		trigger: T,
+		config: TriggerConfigs[T] = DEFAULT_TRIGGER_CONFIGS[trigger],
+	): InputMapping {
+		this.Trigger = TriggerFactory.create(trigger, this.ActionValueType, config);
 		return this;
 	}
 
@@ -169,7 +113,18 @@ export class InputMapping {
 	public ReMapKey(key: TAllKeysCategorizedValues): void {
 		if (InputManager.ReMapKey(this.Key, key)) {
 			this.Key = key;
+			return;
 		}
+		warn(`There was aproblem remapping ${this.Name}`);
+		return;
+	}
+
+	public ActivateKey(): void {
+		InputManager.AddActiveKey(this.Key);
+	}
+
+	public DeactivateKey(): void {
+		InputManager.RemoveActiveKey(this.Key);
 	}
 
 	// functions to process input below
