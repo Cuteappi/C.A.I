@@ -18,9 +18,12 @@ export enum GetKeyMode {
 
 function getKeysfromInputObject(input: InputObject):
 	TAllKeysCategorizedValues | undefined {
+	// if (input.UserInputType === Enum.UserInputType.Touch) {
+	// 	return AllKeysCategorized.Axis1D.TouchActions[input.UserInputType.Name as keyof TouchActions];
+	// }
 
 	if (string.sub(input.UserInputType.Name, 1, 7) === "Gamepad") {
-		let key = AllKeysCategorized.Axis1D.JoySticks[input.KeyCode.Name as keyof JoySticks];
+		const key = AllKeysCategorized.Axis1D.JoySticks[input.KeyCode.Name as keyof JoySticks];
 		if (!key) {
 			return AllKeysCategorized.Buttons.JoyButtons[input.KeyCode.Name as keyof JoyButtons];
 		}
@@ -28,7 +31,7 @@ function getKeysfromInputObject(input: InputObject):
 
 
 	} else if (string.sub(input.UserInputType.Name, 1, 5) === "Mouse") {
-		let key = AllKeysCategorized.Axis1D.MouseActions[input.UserInputType.Name as keyof MouseActions];
+		const key = AllKeysCategorized.Axis1D.MouseActions[input.UserInputType.Name as keyof MouseActions];
 		if (!key) {
 			return AllKeysCategorized.Buttons.MouseButtons[input.UserInputType.Name as keyof MouseButtons];
 		}
@@ -100,6 +103,7 @@ export function CheckKeyType(key: TAllKeysCategorizedValues, value_type: ActionV
 				return ActionValueType.Axis2D;
 
 			else error(" Key Given: " + key.Name + " is not a valid key for a given Type: " + value_type);
+			break;
 
 
 		case ActionValueType.Axis1D:
@@ -110,7 +114,7 @@ export function CheckKeyType(key: TAllKeysCategorizedValues, value_type: ActionV
 				return ActionValueType.Axis1D;
 
 			else error(" Key Given: " + key.Name + " is not a valid key for a given Type: " + value_type);
-
+			break;
 
 		case ActionValueType.Bool:
 			if (AllKeysCategorized.Buttons.JoyButtons[key.Name as keyof JoyButtons]) return ActionValueType.Bool;

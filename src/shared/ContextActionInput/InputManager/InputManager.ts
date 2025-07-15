@@ -13,7 +13,6 @@ export namespace InputManager {
 
 	export const activeKeys = new Map<TAllKeysCategorizedValues, RawInputData>();
 
-
 	export function AddActiveKey(key: TAllKeysCategorizedValues) {
 		if (activeKeys.has(key)) return;
 		activeKeys.set(key, new RawInputData(key));
@@ -78,17 +77,11 @@ export namespace InputManager {
 		debug.profileend();
 	}
 
-
-
-
 	/* -------------------------------------------------------------------------- */
 	/*                            OnInput Function                                */
 	/* -------------------------------------------------------------------------- */
 	function OnInput(actionName: string, state: Enum.UserInputState, input: InputObject) {
 		debug.profilebegin("InputManager Input Processing");
-
-		// print(input.KeyCode.Name);
-
 
 		const key = GetCorrespondingKey(GetKeyMode.InputObject, input);
 		if (!key) return;
@@ -108,7 +101,6 @@ export namespace InputManager {
 		}
 		// added to handle all relevant states
 		else if (input.UserInputState === Enum.UserInputState.Cancel) { InputData.IsActive = false; }
-
 
 		debug.profileend();
 	}
@@ -139,6 +131,7 @@ export namespace InputManager {
 				...Object.values(AllKeysCategorized.Axis1D.JoySticks),
 				...Object.values(AllKeysCategorized.Buttons.JoyButtons),
 				...Object.values(AllKeysCategorized.Axis1D.MouseActions),
+				Enum.UserInputType.Touch
 			]),
 		);
 	}

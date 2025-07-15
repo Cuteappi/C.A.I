@@ -131,7 +131,7 @@ export const AllKeysCategorized = {
         MouseActions: {
             MouseWheel: Enum.UserInputType.MouseWheel,
             MouseMovement: Enum.UserInputType.MouseMovement,
-        }
+        },
     },
     Axis2D: {
         JoySticks: {
@@ -140,7 +140,7 @@ export const AllKeysCategorized = {
         },
         MouseActions: {
             MouseMovement: Enum.UserInputType.MouseMovement,
-        }
+        },
     },
 };
 

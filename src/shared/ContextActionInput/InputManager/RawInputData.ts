@@ -7,7 +7,10 @@ type KeyBuffer = {
 };
 
 export class RawInputData {
-    public Key: TAllKeysCategorizedValues;
+    public Key: TAllKeysCategorizedValues | string;
+    public TouchStartPosition: Vector3 = Vector3.zero;
+    public TouchActive: boolean = false;
+    // public TouchEndPosition: Vector2 = Vector2.zero;
     public Delta: Vector3 = Vector3.zero;
     public Position: Vector3 = Vector3.zero;
     public IsActive: boolean = false;
@@ -18,7 +21,7 @@ export class RawInputData {
         Pre_Previous: false,
     };
 
-    constructor(key: TAllKeysCategorizedValues) {
+    constructor(key: TAllKeysCategorizedValues | string) {
         this.Key = key;
     }
 
